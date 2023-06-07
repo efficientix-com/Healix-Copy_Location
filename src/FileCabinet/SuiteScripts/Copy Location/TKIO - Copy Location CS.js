@@ -13,7 +13,7 @@
  * @copyright Tekiio 2023
  */
 
-define([], () => {
+define(['N/record'], (record) => {
   /**
    * Validation function to be executed when sublist line is committed.
    *
@@ -53,9 +53,32 @@ define([], () => {
     } catch (err) {
       log.error('Error on validateLine', err)
     }
+    return true
+  }
+
+  const lineInit = scriptContext => {
+    try {
+      const {currentRecord, sublistId} = scriptContext;
+      const {type} = currentRecord;
+      if(record.Type.INVENTORY_ADJUSTMENT === type && sublistId === 'inventory') {
+        const mainLocation = currentRecord.getValue({fieldId: 'adjlocation'})
+        log.debug({title:'mainLocation', details:mainLocation});
+        if (mainLocation) {
+          currentRecord.setCurrentSublistValue({
+            sublistId: sublistId,
+            fieldId: 'location',
+            value: mainLocation,
+            ignoreFieldChange: false
+          });
+        }
+      }
+    } catch (err) {
+      log.error({title:'lineInit', details:err});
+    }
   }
 
   return {
     validateLine,
+    lineInit
   }
 })

@@ -8,6 +8,18 @@
   <notifyuser>F</notifyuser>
   <scriptfile>[/SuiteScripts/Copy Location/TKIO - Copy Location CS.js]</scriptfile>
   <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy3">
+      <allemployees>T</allemployees>
+      <alllocalizationcontexts>T</alllocalizationcontexts>
+      <allroles>T</allroles>
+      <audslctrole></audslctrole>
+      <eventtype></eventtype>
+      <executioncontext>ACTION|ADVANCEDREVREC|BANKCONNECTIVITY|BANKSTATEMENTPARSER|BUNDLEINSTALLATION|CLIENT|CONSOLRATEADJUSTOR|CSVIMPORT|CUSTOMGLLINES|CUSTOMMASSUPDATE|DATASETBUILDER|DEBUGGER|EMAILCAPTURE|FICONNECTIVITY|FIPARSER|MAPREDUCE|OCRPLUGIN|OTHER|PAYMENTGATEWAY|PAYMENTPOSTBACK|PLATFORMEXTENSION|PORTLET|PROMOTIONS|RECORDACTION|RESTLET|RESTWEBSERVICES|SCHEDULED|SDFINSTALLATION|SHIPPINGPARTNERS|SUITELET|TAXCALCULATION|USEREVENT|USERINTERFACE|WEBSERVICES|WORKBOOKBUILDER|WORKFLOW</executioncontext>
+      <isdeployed>T</isdeployed>
+      <loglevel>DEBUG</loglevel>
+      <recordtype>INVENTORYADJUSTMENT</recordtype>
+      <status>RELEASED</status>
+    </scriptdeployment>
     <scriptdeployment scriptid="customdeploy2">
       <allemployees>T</allemployees>
       <alllocalizationcontexts>T</alllocalizationcontexts>
