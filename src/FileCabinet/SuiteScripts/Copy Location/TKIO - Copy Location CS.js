@@ -13,7 +13,37 @@
  * @copyright Tekiio 2023
  */
 
-define(['N/record'], (record) => {
+define(['N/record', 'N/currentRecord'], (record, currentRecord) => {
+
+  /**
+   * Function to be executed when field is changed.
+   *
+   * @param {Object} scriptContext
+   * @param {Record} scriptContext.currentRecord - Current form record
+   * @param {string} scriptContext.sublistId - Sublist name
+   * @param {string} scriptContext.fieldId - Field name
+   * @param {number} scriptContext.lineNum - Line number. Will be undefined if not a sublist or matrix field
+   * @param {number} scriptContext.columnNum - Line number. Will be undefined if not a matrix field
+   *
+   * @since 2015.2
+   */
+  function fieldChanged(scriptContext) {
+    try {
+      let currentRecord2 = currentRecord.get();
+      if (currentRecord2.type === 'inventoryadjustment') {
+        // log.debug({ title: 'scriptContext fieldChange', details: currentRecord });
+        // log.debug({ title: 'scriptContext fieldChange', details: scriptContext.sublistId });
+        let location = currentRecord2.getValue({ fieldId: 'adjlocation' });
+        if (scriptContext.sublistId === 'inventory' && location && scriptContext.fieldId === 'item') {
+          log.debug({ title: 'sublistValue', details: 'Se ajusta el detalle' });
+          currentRecord2.setCurrentSublistValue({ sublistId: 'inventory', fieldId: 'location', value: location });
+        }
+      }
+    } catch (e) {
+      log.error({ title: 'Error fieldChanged:', details: e });
+    }
+  }
+
   /**
    * Validation function to be executed when sublist line is committed.
    *
@@ -25,12 +55,14 @@ define(['N/record'], (record) => {
    *
    * @since 2015.2
    */
+
   const validateLine = scriptContext => {
     try {
       /* `const { currentRecord, sublistId } = scriptContext` is using destructuring assignment to
     extract the `currentRecord` and `sublistId` properties from the `scriptContext` object and
     assign them to constants with the same names. This allows for easier and more concise access
     to these properties later in the code. */
+      log.debug({ title: 'scriptContext validate', details: scriptContext });
       const { currentRecord, sublistId } = scriptContext
       if (sublistId === 'item') {
         const mainLocation = currentRecord.getValue({ fieldId: 'location' })
@@ -48,7 +80,30 @@ define(['N/record'], (record) => {
           value: mainLocation,
           ignoreFieldChange: false,
         })
+        if (currentRecord.type === 'purchaserequisition') {
+          const mainCustomer = currentRecord.getValue({ fieldId: 'custbody_tkio_hl_customer_contract' })
+          const mainCustomer_txt = currentRecord.getText({ fieldId: 'custbody_tkio_hl_customer_contract' })
+          const mainShipTo = currentRecord.getValue({ fieldId: 'custbody_tkio_hl_ship_to_con' })
+
+          log.debug('lineInit ~ mainCustomer:', mainCustomer)
+          log.debug('lineInit ~ mainCustomer_txt:', mainCustomer_txt)
+          currentRecord.setCurrentSublistValue({ sublistId: sublistId, fieldId: 'customer', value: mainCustomer, ignoreFieldChange: false, })
+          currentRecord.setCurrentSublistValue({ sublistId: sublistId, fieldId: 'custcol_tkio_ship_to_line', value: mainShipTo, ignoreFieldChange: false, })
+        }
+
       }
+      // if (sublistId === 'inventory' && currentRecord.type === 'inventoryadjustment') {
+      //   const mainLocation = currentRecord.getValue({ fieldId: 'adjlocation' })
+      //   log.debug({ title: 'mainLocation', details: mainLocation });
+      //   if (mainLocation) {
+      //     currentRecord.setCurrentSublistValue({
+      //       sublistId: sublistId,
+      //       fieldId: 'location',
+      //       value: mainLocation,
+      //       ignoreFieldChange: false
+      //     });
+      //   }
+      // }
       return true
     } catch (err) {
       log.error('Error on validateLine', err)
@@ -58,11 +113,12 @@ define(['N/record'], (record) => {
 
   const lineInit = scriptContext => {
     try {
-      const {currentRecord, sublistId} = scriptContext;
-      const {type} = currentRecord;
-      if(record.Type.INVENTORY_ADJUSTMENT === type && sublistId === 'inventory') {
-        const mainLocation = currentRecord.getValue({fieldId: 'adjlocation'})
-        log.debug({title:'mainLocation', details:mainLocation});
+      const { currentRecord, sublistId } = scriptContext;
+      const { type } = currentRecord;
+      log.debug({ title: 'Type and Sublist lineinit', details: [type, sublistId] });
+      if (record.Type.INVENTORY_ADJUSTMENT === type && sublistId === 'inventory') {
+        const mainLocation = currentRecord.getValue({ fieldId: 'adjlocation' })
+        log.debug({ title: 'mainLocation', details: mainLocation });
         if (mainLocation) {
           currentRecord.setCurrentSublistValue({
             sublistId: sublistId,
@@ -73,12 +129,13 @@ define(['N/record'], (record) => {
         }
       }
     } catch (err) {
-      log.error({title:'lineInit', details:err});
+      log.error({ title: 'lineInit', details: err });
     }
   }
 
   return {
     validateLine,
-    lineInit
+    fieldChanged,
+    lineInit,
   }
 })
