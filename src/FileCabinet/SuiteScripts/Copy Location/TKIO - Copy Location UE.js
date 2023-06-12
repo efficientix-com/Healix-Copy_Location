@@ -11,7 +11,7 @@
  *
  * @copyright Tekiio 2023
  */
-define([], () => {
+define(['N/record'], (record) => {
   /**
    * Defines the function definition that is executed before record is submitted.
    * @param {Object} scriptContext
@@ -27,6 +27,16 @@ define([], () => {
       main location value for that line. This ensures that all items in the purchase order
       have a location value assigned to them. */
       const { newRecord, type } = scriptContext
+      var typeTrans = newRecord.type;
+      log.debug({title:'tipoTrans', details:typeTrans});
+      var fieldLocation, sublistLocation;
+      if (typeTrans === record.Type.INVENTORY_ADJUSTMENT) {
+        fieldLocation = 'adjlocation';
+        sublistLocation = 'inventory';
+      }else{
+        fieldLocation = 'location';
+        sublistLocation = 'item';
+      }
       const contextApply = [
         scriptContext.UserEventType.CREATE,
         scriptContext.UserEventType.EDIT,
@@ -36,15 +46,15 @@ define([], () => {
         the value of the "Location" field from the current record being edited or
         created. This value is then stored in the `mainLocation` constant variable to be
         used later in the script. */
-        const mainLocation = newRecord.getValue({ fieldId: 'location' })
-        const numLines = newRecord.getLineCount({ sublistId: 'item' })
+        const mainLocation = newRecord.getValue({ fieldId: fieldLocation })
+        const numLines = newRecord.getLineCount({ sublistId: sublistLocation })
         for (let i = 0; i < numLines; i++) {
           /* `newRecord.setSublistValue()` is a NetSuite API method that sets the value of a field in a
           sublist line of a record. In this specific case, it is setting the value of the "location"
           field in the "item" sublist line at index `i` to the value of `mainLocation`. This ensures
           that all items in the transaction have the same location value as the main location. */
           newRecord.setSublistValue({
-            sublistId: 'item',
+            sublistId: sublistLocation,
             fieldId: 'location',
             line: i,
             value: mainLocation,
